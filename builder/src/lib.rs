@@ -162,7 +162,7 @@ fn extend_method(f: &syn::Field) -> Option<(bool, proc_macro2::TokenStream)> {
     let meta = match g.parse_meta() {
         Ok(syn::Meta::List(mut nvs)) => {
             // list here is .. in #[builder(..)]
-            assert_eq!(nvs.ident, "builder");
+            assert!(nvs.path.is_ident("builder"));
             if nvs.nested.len() != 1 {
                 return mk_err(nvs);
             }
@@ -170,7 +170,7 @@ fn extend_method(f: &syn::Field) -> Option<(bool, proc_macro2::TokenStream)> {
             // nvs.nested[0] here is (hopefully): each = "foo"
             match nvs.nested.pop().unwrap().into_value() {
                 syn::NestedMeta::Meta(syn::Meta::NameValue(nv)) => {
-                    if nv.ident != "each" {
+                    if !nv.path.is_ident("each") {
                         return mk_err(nvs);
                     }
                     nv
@@ -219,7 +219,7 @@ fn ty_inner_type<'a>(wrapper: &str, ty: &'a syn::Type) -> Option<&'a syn::Type> 
             }
 
             let inner_ty = inner_ty.args.first().unwrap();
-            if let syn::GenericArgument::Type(ref t) = inner_ty.value() {
+            if let syn::GenericArgument::Type(ref t) = inner_ty {
                 return Some(t);
             }
         }
